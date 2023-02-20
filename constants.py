@@ -9,9 +9,9 @@ EMPTYIMAGECOLOR=0   # 0=black
 PREFIX = 'Os7-S1 Camera'
 
 # mini
-DBPATH = '../output/mini/particlewise.feather'
-CROPPEDIMAGEPATH = '../output/mini/cropped_images'
-IMAGEPATH = '../cache/mini/images'
+DBPATH = './data/output/mini/particlewise.feather'
+CROPPEDIMAGEPATH = './data/output/mini/cropped_images'
+IMAGEPATH = './data/cache/mini/images'
 
 
 # FOR FEATURE CALCULATION
@@ -28,6 +28,6 @@ weight_size = 0.8  # [0...1]
 weight_sharpness = 0.5  # [0...1]
 
 # INTERACTIVE FEATURESPACE
-INPUTFILE = r'../output/mini/particlewise.feather'
+INPUTFILE = r'./data/output/mini/particlewise.feather'
 SCALE=1
-DATAPATH = r'../output/mini/cropped_images'
+DATAPATH = r'./data/output/mini/cropped_images'

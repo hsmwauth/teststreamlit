@@ -13,6 +13,7 @@ import helper_one as h
 import constants as c
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 # Defining the dataframe as session state/ global Variable that it doesnt need to be be rerun everytime/-page
 if 'db' not in st.session_state:
@@ -29,20 +30,21 @@ if 'imagelist' not in st.session_state:
     
 
 
-st.title('Experiment - ID xxxxxxy')
-st.info('On this page the main specs of the exeriments should be displayed')
+st.title('Experiment: Texus-56')
+st.info('On this page the main specs of the exeriment are displayed. You can toggle through the different pages (navigator in the sidebar) each page has an different analysing approch to the experiment. While toggle through the pages you can add the filenames to a list and later on export this list from this page by pressing the button at the end of the *streamlit app* page.')
 
 st.header('Experiment specification')
-st.write('Hier wird vom experiment-setupfile alles wichtige gescrapped.')
-st.warning('Stand: Warte auf json-file um den scrabber zu schreiben', icon="⚠️") 
-st.markdown('Time: 2024-12-3: 11:30 to 2024-12-3: 12:31')
-st.markdown('n_images: xxxxxxxy')
-st.markdown('...')
-st.markdown('Diagramm with magjor changes in current etc.')
+st.write('Hier werden alle wichtigen Experiment einstellungen dargestellt.')
+st.warning('Stand: Scrabber für Texus-flight ist in Arbeit. Voraussichtliche Fertigstellung 3. März', icon="⚠️") 
 
-st.write('session states:')
+
+st.markdown('Evtl. Diagramm with major changes in current etc etc.')
+
+st.write('session states (Bessere bezeichnung?):')
 st.write('Frame: ' + str(st.session_state['frame']))
 st.write('Order: ' + str(st.session_state['order']))
+
+st.info('Die *session states* sind Variablen die geändert werden können um zwischen den einzelnen Seiten zu wechseln.')
 
 st.write('Imagelist: ')
 clearimagelist = st.button('clear the imagelist')
@@ -51,11 +53,21 @@ if clearimagelist:
     st.session_state['imagelist'] = []
     
 st.write(st.session_state['imagelist'])
+    
 
-imagelist = np.asarray(st.session_state['imagelist'])
+@st.cache
+def convert_df(df):
+     # IMPORTANT: Cache the conversion to prevent computation on every rerun
+     df = pd.DataFrame(df)
+     return df.to_csv().encode('utf-8')
+    
+csv = convert_df(st.session_state['imagelist'])
 
-path2save = st.text_input('Path to save the imagelist to ...', value='./imagelist.csv')
-save = st.button('save the imagelist to defined path ...')
-if save:
-    imagelist.tofile(path2save, sep=',')
-    st.success('Wrote list int file ' + path2save)
+current_dateTime = datetime.now()
+
+st.download_button(
+     label="Download imagelist as CSV",
+     data=csv,
+     file_name= str(current_dateTime.isoformat(sep='T', timespec='minutes')) +'_imagelist.csv',
+     mime='text/csv',
+)

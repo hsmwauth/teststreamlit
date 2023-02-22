@@ -38,7 +38,7 @@ st.write('Hier werden alle wichtigen Experiment einstellungen dargestellt.')
 st.warning('Stand: Scrabber für Texus-flight ist in Arbeit. Voraussichtliche Fertigstellung 3. März', icon="⚠️") 
 
 
-st.markdown('Evtl. Diagramm with major changes in current etc etc.')
+st.markdown('Evtl. Diagramm with major changes in current etc etc. or maybe not')
 
 st.write('session states (Bessere bezeichnung?):')
 st.write('Frame: ' + str(st.session_state['frame']))

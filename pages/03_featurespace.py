@@ -52,14 +52,58 @@ st.pyplot(fig)
 st.header('Calculation Details')
 
 # Display information on the calculation of size
-st.subheader('Size')
-st.markdown('Size: The size is calculated ...')
-st.markdown(r"$s=\sqrt{x^2+y^2}=1$")
-st.code('scrabbing code and dispaly here')
+st.subheader('Feature Calculation Size')
+st.info('Für die Berechnung der Größe wurde auf Basis des Flatfields (Berechnung des Thresholdes über den ersten 5 Bildern des Experiments) die Pixel, die diesen Threshold überschreiten aufsummiert. Mit der fokalen Tiefe kann die Size direkt in eine Fläche/Größe übersetzt werden.')
+st.code('''def calculate_th():
+    path = c.path2th_images
+    imagenames = c.th_images
+
+    list_of_mean = []
+
+    for x in imagenames:
+        if exists(path + x):
+            img = mpimg.imread(path +x) #imports as array of float32 (0...1)
+            mean = np.mean(img)
+            list_of_mean.append(mean)
+            
+        else:
+            print('File existiert nicht')
+    
+    if list_of_mean == []:
+        th = c.threshold
+    else:
+        th = np.mean(list_of_mean)
+    return th''')
+
+st.code('''
+# CALCULATE FEATURE -> size_pixelcount
+binary_image = np.where(cropped_image > threshold, 1, 0)
+# n_ones= np.count_nonzero((binary_image) == 1) # here is no particle in the pixel
+n_zeros = np.count_nonzero(binary_image == 0) # here is a particle in the pixel
+size_pixelcount = n_zeros
+''')
 
 # Display information on calculation of sharpness
-st.subheader('Sharpness')
-st.markdown('Sharpness: ...')
-st.markdown(r'Formula for sharpness: $ \frac{1}{2} $')
-st.code('scrabbin code and display here')
+st.subheader('Feature Calculation Sharpness')
+st.info('Für die Berechnung der Schärfe wurde die Variance des Laplace Filters vom Gauss Filter vewendet.')
 
+st.code('''
+# CALCULATE FEATURE -> sharpness
+start = time.process_time()
+blur = cv2.GaussianBlur(cropped_image, (5, 5), 0)  # apply Gauss-Filter
+blur_norm = (blur-np.min(blur))/(np.max(blur)-np.min(blur)) #normalize beween 0,1# normalizing between 0,1
+laplacian = cv2.Laplacian(blur_norm, cv2.CV_64F)  # apply Laplace-Filter
+laplacian_norm = (laplacian-np.min(laplacian))/np.max(laplacian)-np.min(laplacian) # normalizing between 0,1
+sharpness = np.log10(laplacian_norm.var()) # TODO aply divie by zero and apply the log10
+''')
+
+st.subheader('Combining sharpness and size')
+st.info('Sharpness und Size werden mit einer Linearkombination der Einzelfeatures vereinigt.')
+st.code('''
+weight_size = 0.8  # [0...1]
+weight_sharpness = 0.5  # [0...1]
+        
+def calc_interestingness(feature_sharpness, feature_size):
+    interestingness = np.multiply(c.weight_sharpness * feature_sharpness, c.weight_size * feature_size)
+    return interestingness
+        ''')

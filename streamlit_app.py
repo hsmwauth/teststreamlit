@@ -55,7 +55,7 @@ if clearimagelist:
 st.write(st.session_state['imagelist'])
     
 
-@st.cache
+@st.cache_data
 def convert_df(df):
      # IMPORTANT: Cache the conversion to prevent computation on every rerun
      df = pd.DataFrame(df)

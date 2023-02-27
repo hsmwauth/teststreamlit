@@ -17,7 +17,7 @@ import helper_one as h
 import constants as c
 
 # Set title and Info for this slide
-st.title('Images over order')
+st.title('Particles sorted by order')
 st.info('Displaying the Images due to their order (not due to timestamp).')
 
 # importing database and sorting

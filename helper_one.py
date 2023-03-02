@@ -237,4 +237,20 @@ def test():
 def calc_interestingness(feature_sharpness, feature_size):
     interestingness = np.multiply(c.weight_sharpness * feature_sharpness, c.weight_size * feature_size)
     return interestingness
+
+def normalizing(nparray):
+    # shifting width lower value to 0
+    nparray = nparray - nparray.min()
+    
+    minvalue = nparray.min()
+    maxvalue = nparray.max()
+    diff = maxvalue - minvalue
+    
+    # normalizing (range/span)
+    norm_array = (maxvalue - nparray)/diff
+    
+    # converting to uint8
+    arrayuint8 = (norm_array*255).astype('uint8')
+    
+    return arrayuint8
     

@@ -3,4 +3,5 @@ pandas
 streamlit
 scikit-image
 matplotlib
+opencv-python
 

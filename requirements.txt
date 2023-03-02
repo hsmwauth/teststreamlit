@@ -4,4 +4,4 @@ streamlit
 scikit-image
 matplotlib
 opencv-python
-
+opencv_contrib_python

@@ -11,7 +11,7 @@ Following questions should be answered on this page:
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-# import numpy as np
+import numpy as np
 
 import helper_one as h
 import constants as c
@@ -30,13 +30,47 @@ db = pd.read_feather(c.DBPATH)
 opacity = st.sidebar.slider('Opacity', 0.0, 1.0, 0.5)
 size = st.sidebar.slider('Markersize',0,10,2)
 
+
+
 # creating the plot
 fig, ax = plt.subplots(figsize=(5.5, 5.5))
-ax.scatter(images_notreceived[0],images_notreceived[1], c = 'k', alpha=opacity, s=size) #beachte reihenfolge, da die ersten übermahlt werden.
-ax.scatter(images_received[0], images_received[1], c= 'g', alpha=opacity, s=size)
-plt.legend(['not received images', 'received images'])
 plt.xlabel('size')
 plt.ylabel('sharpness')
+ax.set_xscale('log')
+ax.set_yscale('log')
+
+
+ax.scatter(images_notreceived[0],images_notreceived[1], c = 'k', alpha=opacity, s=size) #beachte reihenfolge, da die ersten übermahlt werden.
+ax.scatter(images_received[0], images_received[1], c= 'g', alpha=opacity, s=size)
+legend = ['not received images', 'received images']
+
+groundtruth = st.sidebar.checkbox("Show groundtruth", False)
+if groundtruth:
+    # load database
+    db_gt = pd.read_feather('./data/groundtruth.feather')
+    size = db_gt['size'].to_numpy()
+    sharp = db_gt['laplace_var'].to_numpy()
+    ax.scatter(size,sharp,  c ='y', alpha=0.2, s=2)
+    name = 'groundtruth'
+    if name in legend:
+        pass
+    else:
+        legend.append(name)
+
+
+hyperplane = st.sidebar.checkbox("Show hyperplane", False)
+if hyperplane:
+    x2=np.linspace(2,10,100)
+    m = -2.4/4
+    b = 0.1
+    x1 = np.e**x2
+    fx = np.e**(m*x2 + b)
+    ax.plot(x1,fx)
+    name = 'hyperplane'
+    if name in legend:
+        pass
+    else:
+        legend.append(name)
 
 #[x1, x2] = h.getinterestingness(db)
 
@@ -44,6 +78,8 @@ plt.ylabel('sharpness')
 #ax.quiver(origin[0], origin[1], c.weight_size, c.weight_sharpness, scale=10)
 
 #ax.plot(x1,x2)
+
+ax.legend(legend, loc='lower left')
 
 # displaying the plot
 st.pyplot(fig)
@@ -89,21 +125,21 @@ st.info('Für die Berechnung der Schärfe wurde die Variance des Laplace Filters
 
 st.code('''
 # CALCULATE FEATURE -> sharpness
-start = time.process_time()
-blur = cv2.GaussianBlur(cropped_image, (5, 5), 0)  # apply Gauss-Filter
-blur_norm = (blur-np.min(blur))/(np.max(blur)-np.min(blur)) #normalize beween 0,1# normalizing between 0,1
-laplacian = cv2.Laplacian(blur_norm, cv2.CV_64F)  # apply Laplace-Filter
-laplacian_norm = (laplacian-np.min(laplacian))/np.max(laplacian)-np.min(laplacian) # normalizing between 0,1
-sharpness = np.log10(laplacian_norm.var()) # TODO aply divie by zero and apply the log10
+cropped_image = np.asarray(cropped_image)/255 # normalizing dtype=uint8 to 1
+
+# CALCULATE FEATURE -> sharpness
+    # gaussian filter
+stencil_gauss = (1/16)*np.array(([1,2,1],[2,4,2],[1,2,1]))
+gauss = ndimage.convolve(cropped_image, stencil_gauss, mode='wrap')
+
+    # laplace
+stencil_laplace = np.array([[1,1,1],[1,-8,1],[1,1,1]])
+gausslaplace = ndimage.convolve(gauss,stencil_laplace, mode='wrap')
+laplace_variance = np.var(gausslaplace)
 ''')
 
 st.subheader('Combining sharpness and size')
 st.info('Sharpness und Size werden mit einer Linearkombination der Einzelfeatures vereinigt.')
 st.code('''
-weight_size = 0.8  # [0...1]
-weight_sharpness = 0.5  # [0...1]
-        
-def calc_interestingness(feature_sharpness, feature_size):
-    interestingness = np.multiply(c.weight_sharpness * feature_sharpness, c.weight_size * feature_size)
-    return interestingness
+not yet defined
         ''')

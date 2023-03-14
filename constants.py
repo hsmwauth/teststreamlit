@@ -12,11 +12,11 @@ PREFIX = 'Os7-S1 Camera'
 DBPATH = './data/output/mini/particlewise.feather'
 CROPPEDIMAGEPATH = './data/output/mini/cropped_images'
 IMAGEPATH = './data/cache/mini/images'
+PATHORDERED = './data/Good_Particle_Ordered.csv'
 
 
 # FOR FEATURE CALCULATION
 threshold_constant = 0.6313  #160/255 #to make it binary for pixelcount
-
 
 # feather
 # DBPATH = '/home/auth/Documents/Projekte/aid_icaps/output/texus/particlewise.feather'

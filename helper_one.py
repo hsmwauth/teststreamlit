@@ -9,6 +9,12 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from os.path import exists
+from scipy import ndimage
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import matplotlib
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+
 
 
 
@@ -253,4 +259,137 @@ def normalizing(nparray):
     arrayuint8 = (norm_array*255).astype('uint8')
     
     return arrayuint8
+
+def iap(x,y,colorcode,db):
+    path = r'./data/train_particles/'
     
+    arr = []
+    scale = 1
+    filename = []
+    
+    for row in db.itertuples():
+        fname = row.cropedimage
+        img = mpimg.imread(path + fname)
+        arr.append(img)
+        filename.append(fname)
+    arr = np.asarray(arr, dtype=object)
+    #print('arr shape/size/type: ' + str(arr[0].shape))
+    
+    
+    # colors = {'0': 'red','1':'blue'}
+    # create figure and plot scatter
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    line = ax.scatter(x, y, 
+                      marker="o", 
+                      facecolor=colorcode, 
+                      alpha=1,
+                      #color='k', 
+                      s=15)
+    plt.title("Featurspace")
+    plt.ylabel("sharpness [-]")
+    plt.xlabel("size [n_pixel]")
+    # fig.colorbar(line)
+    
+    # create the annotations box
+    im = OffsetImage(arr[0],
+                     zoom=1, 
+                     cmap=plt.cm.gray_r)
+    
+    xybox = (50., 50.)  # Position der Box
+    
+    ab = AnnotationBbox(im, (0, 0), xybox=xybox, xycoords='data',
+                        boxcoords="offset points", pad=0.3, arrowprops=dict(arrowstyle="->"))
+    # add it to the axes and make it invisible
+    ax.add_artist(ab)
+    ab.set_visible(False)
+    ax.set_yscale('log')
+    ax.set_xscale('log')
+    ax.grid(visible=True, which="both")
+    #plt.xscale('symlog')
+    #plt.yscale('symlog')
+    #ax.legend()
+    
+    #xdata = np.array([17, 250, 700, 1700])
+    #ydata = np.array([0.08, 0.02, 0.01, 0.006])
+    #ax.scatter(xdata,ydata,color='k')
+    
+    #xdata = np.array([4,7])
+    #ydata = np.array([-3,-4.8])
+    #ax.plot(xdata, ydata)
+    
+    x2=np.linspace(2,10,100)
+    
+    m = -2.4/4
+    b = 0.1
+    x1 = np.e**x2
+    fx = np.e**(m*x2 + b)
+    ax.plot(x1,fx)
+
+    # # linear
+    # c1 = -3.231050962185965e-05
+    # c2 = 0.05054303229037492
+    # f_lin = c1*x2 + c2
+    # ax.plot(x2,f_lin)
+    
+    # # quadratic
+    # c3 = 6.362489230517171e-08
+    # c4 = -0.00014606818581024098
+    # c5 = 0.07162919305036503
+    # f_quad = c3*x2**2 + c4*x2 + c5
+    # ax.plot(x2,f_quad)
+    
+    # # exp
+    # c6 = -241.96286732898602
+    # c7 = 6.943480651959799e-05
+    # c8 = 242.08573676379947
+    # f_exp = c6*x2**c7 + c8
+    # ax.plot(x2, f_exp)
+    
+    # kubisch
+    #a = 6.304678557418634e-07
+    #b = -0.001198377835938013
+    #c = 0.2701902180006368
+    #f=a*x**2 + b*x + c
+    
+
+
+    
+    
+    # Logistic Fuction:
+    #x1 = np.linspace(0,10000,1000)
+    #L = 1 # supremum of the values of the function
+    #k = 1/1000 # logistic growth rate or steepness of the curve
+    #x0 = 150 #  the x value of the function's midpoint
+    #f = L/(1+np.exp((-1*k)*(x1-x0)))
+    #ax.plot(x1,f)
+    
+    def hover(event):
+        # if the mouse is over the scatter points
+        if line.contains(event)[0]:
+            # find out the index within the array from the event
+            ind, = line.contains(event)[1]["ind"]
+            # get the figure size
+            w, h = fig.get_size_inches() * fig.dpi
+            ws = (event.x > w / 2.) * -1 + (event.x <= w / 2.)
+            hs = (event.y > h / 2.) * -1 + (event.y <= h / 2.)
+            # if event occurs in the top or right quadrant of the figure,
+            # change the annotation box position relative to mouse.
+            ab.xybox = (xybox[0] * ws, xybox[1] * hs)
+            # make annotation box visible
+            ab.set_visible(True)
+            # place it at the position of the hovered scatter point
+            ab.xy = (x[ind], y[ind])
+            # set the image corresponding to that point
+            im.set_data(1-arr[ind]) # 1- um die Farben um zu kehren
+            # write down Frame and Position
+            print('Frame: ' + filename[ind])
+        else:
+            # if the mouse is not over a scatter point
+            ab.set_visible(False)
+        fig.canvas.draw_idle()
+    
+    # add callback for mouse moves
+    fig.canvas.mpl_connect('motion_notify_event', hover)
+    plt.show()

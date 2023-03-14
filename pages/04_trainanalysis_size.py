@@ -49,3 +49,5 @@ size_pixelcount = n_zeros
 
 image2display = Image.fromarray((binary_image*255).astype('uint8'), 'L')
 st.image(image2display)
+
+

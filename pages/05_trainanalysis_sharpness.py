@@ -10,6 +10,7 @@ import streamlit as st
 import pandas as pd
 from PIL import Image
 import numpy as np
+from scipy import ndimage
 import matplotlib.pyplot as plt
 import cv2
 
@@ -46,41 +47,38 @@ path2file = r'./data/train_particles/' + particle
 st.write(path2file)
 
 # load the image
-img = Image.open(path2file)
+image = Image.open(path2file)
 
-# Display the image
-st.subheader('Original Particle')
-st.image(img)
 
-# Normalizing
-norm_img = np.asarray(img)/255 # normalizing dtype=uint8 to 1
+# gaussian filter
+stencil_gauss = (1/16)*np.array(([1,2,1],[2,4,2],[1,2,1]))
+gauss = ndimage.convolve(image, stencil_gauss, mode='wrap')
 
-st.subheader('Blurring and Normalization')
-kernelsize = st.slider('Kernel size',1,15,5)
-blur = cv2.blur(norm_img, (kernelsize, kernelsize))
-blur_img = h.normalizing(blur)
-st.image(blur_img)
+# laplace filter
+stencil_laplace1 = np.array([[0, 1, 0],[1, -4, 1], [0, 1, 0]]) #
+stencil_laplace2 = np.array([[1,1,1],[1,-8,1],[1,1,1]]) # additionally for diagonal corners
+laplacian1 = ndimage.convolve(image, stencil_laplace1, mode = 'wrap')
+laplacian2 = ndimage.convolve(image, stencil_laplace2, mode = 'wrap')
 
-# Calculate gradient (L1 - norm)
-st.subheader('Gradient-based operators')
-gradients = np.gradient(blur)
-grad = abs(np.sqrt(gradients[0]**2 + gradients[1]**2))
-grad_img = h.normalizing(grad)
-st.image(grad_img)
+gausslaplace = ndimage.convolve(gauss,stencil_laplace2, mode='wrap')
 
-# making the Histogram on the gradient
-start, end = st.select_slider('uint8 Range for gradient', options = np.linspace(0,256,257).tolist(), value=(0,256))
-histogram = cv2.calcHist([grad_img],[0],mask=None,histSize=[int(end-start)], ranges=[int(start), int(end)])
-st.bar_chart(histogram, use_container_width=True)
+fig, axs = plt.subplots(2,2)
+axs[0,0].imshow(image, cmap = 'gray')
+axs[0,0].set_title('original')
+axs[0,0].set_xticks([], [])
 
-st.subheader('Laplace-based operators')
+axs[0,1].imshow(gauss, cmap='gray')
+axs[0,1].set_title('gauss(origininal)')
+axs[0,1].set_xticks([], [])
 
-laplace = cv2.Laplacian(blur,cv2.CV_64F)
-laplace_img = h.normalizing(laplace)
+axs[1,0].imshow(laplacian2, cmap = 'gray')
+axs[1,0].set_title('laplace(origninal)')
+axs[1,0].set_xticks([], [])
 
-# making the Histogram on the laplace
-start_l, end_l = st.select_slider('uint8 Range for laplace', options = np.linspace(0,256,257).tolist(), value=(0,256))
-histogram = cv2.calcHist([laplace_img],[0],mask=None,histSize=[int(end-start)], ranges=[int(start_l), int(end_l)])
-st.bar_chart(histogram, use_container_width=True)
+axs[1,1].imshow(gausslaplace, cmap = 'gray')
+axs[1,1].set_title('laplace(gauss(original))')
+axs[1,1].set_xticks([], [])
 
-st.image(laplace_img)
+st.pyplot(fig)
+
+st.write(str(int(np.var(gauss))))

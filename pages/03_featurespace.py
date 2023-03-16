@@ -18,7 +18,7 @@ import constants as c
 
 # Set title and Info for this slide
 st.title('Featurespace')
-st.info('Displaying the featurespace on base what the AID detected. Received particles get displayed in green. Not received one in black. You can change some Diagramsettings in the sidebar. The black arrow is the representation of the gradient of the Orderfunktion.')
+st.info('Displaying the featurespace on base what the AID detected. Received particles get displayed in green. Not received one in black. You can change some Diagramsettings in the sidebar. The Hyperplane indicates the gradient of the Order.')
 
 # import database
 db = pd.read_feather(c.DBPATH)
@@ -37,10 +37,23 @@ plt.ylabel('sharpness')
 ax.set_xscale('log')
 ax.set_yscale('log')
 
+# images which ar not received in the groundstation yet.
+ax.scatter(images_notreceived[0],images_notreceived[1], 
+           c = 'k', 
+           alpha=opacity, 
+           s=size, 
+           edgecolors=None,
+           linewidth=1) #beachte reihenfolge, da die ersten übermahlt werden.
 
+# images, which got received in the groundstation
+ax.scatter(images_received[0], images_received[1], 
+           c='g', 
+           alpha=opacity, 
+           s=size, 
+           #cmap='g',
+           edgecolors=None,
+           linewidth=1)
 
-ax.scatter(images_notreceived[0],images_notreceived[1], c = images_notreceived[2], alpha=opacity, s=size, cmap='gray',edgecolors='k',linewidth=0.5) #beachte reihenfolge, da die ersten übermahlt werden.
-ax.scatter(images_received[0], images_received[1], c= images_received[2], alpha=opacity, s=size, cmap='gray',edgecolors='g',linewidth=0.5)
 legend = ['not received images', 'received images']
 
 groundtruth = st.sidebar.checkbox("Show groundtruth", False)

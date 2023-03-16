@@ -41,9 +41,11 @@ if changesessionstateframe:
 add2imagelist = st.button('add this frame to imagelist')
 if add2imagelist:
     st.session_state['imagelist'].append(frame + '.png')
+    
+fontsize = st.sidebar.slider('Fontsize', 0, 100, 10)
 
 # get the dummy-image
-[img, db_img] = h.fake_img(fn)
+[img, db_img] = h.fake_img(fn, fontsize)
 
 # display the dummy-image
 st.header('Os7-S1 Camera' + str(fn) + '.png')

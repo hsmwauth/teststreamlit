@@ -18,11 +18,13 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 
 
-def fake_img(number):
+def fake_img(number, fontsize):
     '''
     input is the image counter and the database,
     from that it creates a fake image width all detected particles
     '''
+    #fontsize= 100
+    
     #Getting DB
     # db = pd.read_feather(c.DBPATH)
     
@@ -40,6 +42,12 @@ def fake_img(number):
     
     # loop over every entry and add it to the image
     db_img = db_img.reset_index()  # make sure indexes pair with number of rows
+    
+    
+    font = ImageFont.truetype('FreeSerif.ttf', fontsize)
+    marginx = marginy = 0
+    
+    
     
     for index, row in db_img.iterrows():
         # Get local Variables
@@ -91,11 +99,12 @@ def fake_img(number):
         order = row['order']
     
         text = str(order)
-        textwidth, textheight = draw.textsize(text)
-        marginx = marginy = 2
+        
+        textwidth, textheight = draw.textsize(text)        
         x = right - textwidth -marginx
-        y = bottom - textheight - marginy
-        draw.text((x, y), text)
+        y = bottom - textheight - marginy       
+
+        draw.text((x, y), text, font=font)
             
     return [dummy_image, db_img]
 

@@ -47,8 +47,10 @@ st.write(filename)
 # extract the imagenumber as str
 fn = filename.split('Camera')[1]
 
+fontsize = st.sidebar.slider('Fontsize', 0, 100, 10)
+
 # get the dummy-image
-[img, db_img] = h.fake_img(fn)
+[img, db_img] = h.fake_img(fn, fontsize)
 
 # displaying the image
 st.image(img)

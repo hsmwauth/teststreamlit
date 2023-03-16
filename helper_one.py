@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from skimage import io
 import os.path
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import streamlit as st
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -33,11 +33,14 @@ def fake_img(number):
     db_img = st.session_state['db'][st.session_state['db']['filename'] == imagename]
 
     # creating empty dummy image
-    dummy_img = np.ones((c.IMAGESIZE_X, c.IMAGESIZE_Y), dtype=np.uint8)*c.BACKGROUNDCOLOR
+    dummy_image = np.ones((c.IMAGESIZE_X, c.IMAGESIZE_Y), dtype=np.uint8)*c.BACKGROUNDCOLOR
 
+    # creating empty dummy image
+    dummy_image = np.ones((c.IMAGESIZE_X, c.IMAGESIZE_Y), dtype=np.uint8)*c.BACKGROUNDCOLOR
+    
     # loop over every entry and add it to the image
     db_img = db_img.reset_index()  # make sure indexes pair with number of rows
-
+    
     for index, row in db_img.iterrows():
         # Get local Variables
         left = int(row['left'])
@@ -48,38 +51,53 @@ def fake_img(number):
         # sharpness = row['sharpness']
         # interestingness = row['interestingness']
         order = row['order']
+        print(order)
         
         width = right - left
         height = bottom - top
         
         # st.write([left, right, top, bottom])
         
-        #load cropped image if exists
+        # cropped image in case of existance
         cropped_imgpath = c.CROPPEDIMAGEPATH + '/' + str(order) + '_' + imagename + '.png'
         
-        # load whole image path in case whole image got downloaded
+        # whole image path in case of existance
         imagepath = c.CROPPEDIMAGEPATH + '/' + imagename + '.png'
         
         #offset = np.array((left, top))
         
-        if os.path.exists(imagepath):
-            img = io.imread(imagepath) 
-        elif os.path.exists(cropped_imgpath):
+        if os.path.exists(imagepath): # wenn das ganz Image schon runtergeladen wurde wird natürlich dieses dargestellt
+            dummy_image = io.imread(imagepath)
+            pass
+        elif os.path.exists(cropped_imgpath): # wenn das gecroppte image existiert
             cropped_img = io.imread(cropped_imgpath)
-            dummy_img[top : (top + height), left : (left + width)] = cropped_img
-            # convert the dummy image-array to an image
-            img = Image.fromarray(dummy_img, 'L')
+            dummy_image[top : (top + height), left : (left + width)] = cropped_img
         else:
             cropped_img = np.ones((height, width), dtype=np.uint8)
-            dummy_img[top : (top + height), left : (left + width)] = cropped_img
-            # convert the dummy image-array to an image
-            img = Image.fromarray(dummy_img, 'L')
+            dummy_image[top : (top + height), left : (left + width)] = cropped_img
         
-        
-        
-    #img.save('my.png')
-    # img.show()
-    return [img, db_img]
+    dummy_image = Image.fromarray(dummy_image, 'L')
+    
+    
+    draw = ImageDraw.Draw(dummy_image)
+    for index, row in db_img.iterrows():
+        left = int(row['left'])
+        right = int(row['right'])
+        top = int(row['top'])
+        bottom = int(row['bottom'])
+        # size_pixelcount = row['size_pixelcount']
+        # sharpness = row['sharpness']
+        # interestingness = row['interestingness']
+        order = row['order']
+    
+        text = str(order)
+        textwidth, textheight = draw.textsize(text)
+        marginx = marginy = 2
+        x = right - textwidth -marginx
+        y = bottom - textheight - marginy
+        draw.text((x, y), text)
+            
+    return [dummy_image, db_img]
 
 def getfeaturespace(db):
     # Getting features
@@ -93,9 +111,12 @@ def getfeaturespace(db):
 
     images_received_x = []
     images_received_y = []
+    images_received_order = []
     images_received =[]
+    
     images_notreceived_x = []
     images_notreceived_y = []
+    images_notreceived_order = []
 
     for i in range(0,len(x)):
         # ord = '%06d' % order[i]
@@ -106,13 +127,15 @@ def getfeaturespace(db):
             # color.append('g')
             images_received_x.append(x[i])
             images_received_y.append(y[i])
+            images_received_order.append(int(ord))
         else:
             # color.append('k')
             images_notreceived_x.append(x[i])
             images_notreceived_y.append(y[i])
+            images_notreceived_order.append(int(ord))
             
-    images_received = [images_received_x, images_received_y]
-    images_notreceived = [images_notreceived_x, images_notreceived_y]
+    images_received = [images_received_x, images_received_y, images_received_order]
+    images_notreceived = [images_notreceived_x, images_notreceived_y, images_notreceived_order]
     
     return images_received, images_notreceived
     
@@ -227,13 +250,6 @@ def order2imagename(order):
     filename = df['filename'].tolist()[0]
     fn = int(filename.split('Camera')[1])
     return fn
-
-def getinterestingness(db):
-    grad_interestingness = [c.weight_size, c.weight_sharpness]
-    # getting the ordering function to display
-    x1 = [10.0,3.0] # size
-    x2 = [-12,-6] # sharpness
-    return x1, x2
 
 
 # some minimal example functions ------------------------------------------------------

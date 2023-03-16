@@ -28,9 +28,7 @@ db = pd.read_feather(c.DBPATH)
 
 # displaying properties
 opacity = st.sidebar.slider('Opacity', 0.0, 1.0, 0.5)
-size = st.sidebar.slider('Markersize',0,10,2)
-
-
+size = st.sidebar.slider('Markersize',0,20,2)
 
 # creating the plot
 fig, ax = plt.subplots(figsize=(5.5, 5.5))
@@ -40,8 +38,9 @@ ax.set_xscale('log')
 ax.set_yscale('log')
 
 
-ax.scatter(images_notreceived[0],images_notreceived[1], c = 'k', alpha=opacity, s=size) #beachte reihenfolge, da die ersten übermahlt werden.
-ax.scatter(images_received[0], images_received[1], c= 'g', alpha=opacity, s=size)
+
+ax.scatter(images_notreceived[0],images_notreceived[1], c = images_notreceived[2], alpha=opacity, s=size, cmap='gray',edgecolors='k',linewidth=0.5) #beachte reihenfolge, da die ersten übermahlt werden.
+ax.scatter(images_received[0], images_received[1], c= images_received[2], alpha=opacity, s=size, cmap='gray',edgecolors='g',linewidth=0.5)
 legend = ['not received images', 'received images']
 
 groundtruth = st.sidebar.checkbox("Show groundtruth", False)
@@ -65,7 +64,7 @@ if hyperplane:
     b = 0.1
     x1 = np.e**x2
     fx = np.e**(m*x2 + b)
-    ax.plot(x1,fx)
+    ax.plot(x1,fx, linewidth=0.2)
     name = 'hyperplane'
     if name in legend:
         pass
@@ -80,7 +79,6 @@ if hyperplane:
 #ax.plot(x1,x2)
 
 ax.legend(legend, loc='lower left')
-
 # displaying the plot
 st.pyplot(fig)
 
@@ -141,5 +139,31 @@ laplace_variance = np.var(gausslaplace)
 st.subheader('Combining sharpness and size')
 st.info('Sharpness und Size werden mit einer Linearkombination der Einzelfeatures vereinigt.')
 st.code('''
-not yet defined
+        # Calculate the interestingness in log-space
+feature1 = np.log(size_pixelcount)
+feature2 = np.log(laplace_variance)
+p = np.array([feature1,feature2])
+distance = np.cross(c.p2-c.p1,p-c.p1)/np.linalg.norm(c.p2-c.p1)
+interestingness = distance
+
+
+def ordering(data):
+
+    # ORDER DATAFRAME DUE TO INTERESTINGNESS in ascendeing order
+    data.sort_values(by=['interestingness'], inplace=True)
+    data.reset_index(drop=True, inplace=True)
+    # print(data.tail())
+
+    # CREATE INTEGER ORDER-VECTOR
+    n_rows = len(data.filename)
+    order = np.linspace(start=1,
+                        stop=n_rows,
+                        num=n_rows,
+                        dtype=int)
+    data['order'] = order  # add the integer-order-vector to the dataframe
+    print('Created and stored following table:')
+    print(data.describe())
+    #plt.hist(data.sharpness,bins=100)
+    # plt.show()
+    return data
         ''')

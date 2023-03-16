@@ -17,7 +17,7 @@ import pandas as pd
 st.title('Images over time')
 
 #write Information what this page is about:
-st.info('Toggle through time to display all correspondent particles we received until now. The not received particles are represented through a place holder.')
+st.info('Toggle through time to display all correspondent particles we received until now. The not received particles are represented through a place holder. The little black number corresponds to the Order.')
 
 # Getting database -> old one, before using the session state
 # db = pd.read_feather(c.DBPATH)

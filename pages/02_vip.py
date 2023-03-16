@@ -18,7 +18,7 @@ import constants as c
 
 # Set title and Info for this slide
 st.title('Particles sorted by order')
-st.info('Displaying the Images due to their order (not due to timestamp).')
+st.info('Displaying the Images due to their order (not due to timestamp). The little black number corresponds to the Order, also finding below in the table.')
 
 # importing database and sorting
 # db = pd.read_feather(c.DBPATH)
@@ -52,8 +52,6 @@ fn = filename.split('Camera')[1]
 
 # displaying the image
 st.image(img)
-
-
 
 # displaying the correspondent database with all particles in this image
 st.write(db_img)

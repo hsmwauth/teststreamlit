@@ -51,7 +51,7 @@ def fake_img(number):
         # sharpness = row['sharpness']
         # interestingness = row['interestingness']
         order = row['order']
-        print(order)
+        # print(order)
         
         width = right - left
         height = bottom - top
